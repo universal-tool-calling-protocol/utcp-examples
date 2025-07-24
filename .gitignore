@@ -1,0 +1,10 @@
+.DS_Store
+
+.idea/
+
+.vscode/
+
+.cursorignore
+.cursorindexingignore
+
+.kiro
