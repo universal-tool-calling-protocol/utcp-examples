@@ -1,0 +1,21 @@
+{
+  "name": "openai_llm_tool_calling_example",
+  "version": "1.0.0",
+  "main": "openai_utcp_example.ts",
+  "scripts": {
+    "start": "ts-node openai_utcp_example.ts"
+  },
+  "author": "",
+  "description": "",
+  "dependencies": {
+    "@utcp/sdk": "^0.1.0",
+    "openai": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "eslint": "^9.30.1",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

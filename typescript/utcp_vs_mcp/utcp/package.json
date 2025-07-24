@@ -1,0 +1,19 @@
+{
+  "name": "utcp",
+  "version": "1.0.0",
+  "main": "main.ts",
+  "scripts": {
+    "start": "ts-node main.ts"
+  },
+  "author": "",
+  "description": "",
+  "dependencies": {
+    "@utcp/sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "eslint": "^9.30.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
