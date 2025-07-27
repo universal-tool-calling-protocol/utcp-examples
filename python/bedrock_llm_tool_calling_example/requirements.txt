@@ -1,0 +1,7 @@
+fastapi[standard]
+uvicorn
+httpx
+pydantic
+authlib
+python-dotenv
+boto3>=1.28.0
