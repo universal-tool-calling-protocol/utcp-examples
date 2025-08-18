@@ -7,16 +7,31 @@ import re
 from dotenv import load_dotenv
 from agents import Agent, Runner, FunctionTool
 
-from utcp.client.utcp_client import UtcpClient
-from utcp.client.utcp_client_config import UtcpClientConfig
-from utcp.shared.tool import Tool
+from utcp.utcp_client import UtcpClient
+from utcp.data.utcp_client_config import UtcpClientConfigSerializer
+from utcp.data.tool import Tool
 
 async def initialize_utcp_client() -> UtcpClient:
     """Initialize the UTCP client with configuration."""
-    config = UtcpClientConfig(
-        providers_file_path=str(Path(__file__).parent / "providers.json")
+    # Create a configuration for the UTCP client
+    config = UtcpClientConfigSerializer().validate_dict(
+        {
+            "manual_call_templates": [
+                {
+                    "name": "gymbro_api",
+                    "call_template_type": "http",
+                    "http_method": "GET",
+                    "url": "http://localhost:8080/utcp"
+                }
+            ]
+        }
     )
-    return await UtcpClient.create(config)
+    
+    # Create and return the UTCP client
+    return await UtcpClient.create(
+        root_dir=str(Path(__file__).parent),
+        config=config
+    )
 
 def sanitize_tool_name(name: str) -> str:
     """
@@ -55,11 +70,12 @@ def utcp_tool_to_agent_tool(utcp_client: UtcpClient, tool: Tool) -> FunctionTool
     params_schema = {"type": "object", "properties": {}, "required": []}
     
     if tool.inputs and tool.inputs.properties:
-        for prop_name, prop_schema in tool.inputs.properties.items():
+        inputs_dict = tool.inputs.model_dump(exclude_none=True)
+        for prop_name, prop_schema in inputs_dict["properties"].items():
             params_schema["properties"][prop_name] = prop_schema
         
-        if tool.inputs.required:
-            params_schema["required"] = tool.inputs.required
+        if inputs_dict["required"]:
+            params_schema["required"] = inputs_dict["required"]
 
     sanitized_name = sanitize_tool_name(tool.name)
     return FunctionTool(
@@ -81,7 +97,7 @@ async def main():
     print("🚀 Initializing UTCP client...")
     try:
         utcp_client = await initialize_utcp_client()
-        utcp_tools = await utcp_client.tool_repository.get_tools()
+        utcp_tools = await utcp_client.config.tool_repository.get_tools()
         print(f"✅ UTCP client initialized. Found {len(utcp_tools)} tools.")
     except Exception as e:
         print(f"❌ Failed to initialize UTCP client or fetch tools: {e}")

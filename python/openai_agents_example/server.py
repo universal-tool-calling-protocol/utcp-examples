@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import List, Literal
 
-from utcp.shared.provider import HttpProvider
-from utcp.shared.tool import utcp_tool
-from utcp.shared.utcp_manual import UtcpManual
+from utcp_http.http_call_template import HttpCallTemplate
+from utcp.python_specific_tooling.tool_decorator import utcp_tool
+from utcp.data.utcp_manual import UtcpManual
 
 __version__ = "1.0.0"
 BASE_PATH = "http://localhost:8080"
@@ -22,7 +22,9 @@ def get_utcp_manual():
     """
     Provides the UTCP manual for discovering available tools.
     """
-    return UtcpManual.create(version=__version__)
+    return UtcpManual.create_from_decorators(
+        manual_version=__version__
+    ).model_dump()
 
 # --- Tool: Get Workout for Today ---
 
@@ -31,7 +33,7 @@ class TodaysWorkoutResponse(BaseModel):
     focus: str = Field(..., description="The main muscle group or focus for today, e.g., 'Chest Day'.")
 
 @utcp_tool(
-    tool_provider=HttpProvider(
+    tool_call_template=HttpCallTemplate(
         name="get_workout_for_today",
         url=f"{BASE_PATH}/workout/today",
         http_method="GET"
@@ -54,7 +56,7 @@ class LogExerciseResponse(BaseModel):
     message: str = Field(..., description="A confirmation message.")
 
 @utcp_tool(
-    tool_provider=HttpProvider(
+    tool_call_template=HttpCallTemplate(
         name="log_exercise",
         url=f"{BASE_PATH}/workout/log",
         http_method="POST"
@@ -69,4 +71,4 @@ def log_exercise(exercise_name: str, sets: int, reps: int, weight_kg: float) -> 
     return {
         "status": "success",
         "message": f"Successfully logged {sets}x{reps} of {exercise_name} at {weight_kg}kg."
-    } 
+    }

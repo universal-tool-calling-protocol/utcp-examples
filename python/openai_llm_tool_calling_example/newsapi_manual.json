@@ -1,5 +1,6 @@
 {
-  "version": "1.0",
+  "manual_version": "1.0",
+  "utcp_version": "1.0",
   "tools": [
     {
       "name": "everything_get",
@@ -124,8 +125,8 @@
           }
         }
       },
-      "tool_provider": {
-        "provider_type": "http",
+      "tool_call_template": {
+        "call_template_type": "http",
         "url": "https://newsapi.org/v2/everything",
         "http_method": "GET",
         "content_type": "application/json",
@@ -236,8 +237,8 @@
           }
         }
       },
-      "tool_provider": {
-        "provider_type": "http",
+      "tool_call_template": {
+        "call_template_type": "http",
         "url": "https://newsapi.org/v2/top-headlines",
         "http_method": "GET",
         "content_type": "application/json",
