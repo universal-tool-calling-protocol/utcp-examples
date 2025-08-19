@@ -6,3 +6,4 @@ openai-agents
 python-dotenv
 boto3
 utcp
+utcp-http

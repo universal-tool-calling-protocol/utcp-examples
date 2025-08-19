@@ -20,23 +20,58 @@ from typing import Dict, Any, List
 import openai
 from dotenv import load_dotenv
 
-from utcp.client.utcp_client import UtcpClient
-from utcp.client.utcp_client_config import UtcpClientConfig, UtcpDotEnv
-from utcp.shared.tool import Tool
-
+from utcp.utcp_client import UtcpClient
+from utcp.data.utcp_client_config import UtcpClientConfigSerializer
+from utcp.data.tool import Tool
 
 async def initialize_utcp_client() -> UtcpClient:
     """Initialize the UTCP client with configuration."""
     # Create a configuration for the UTCP client
-    config = UtcpClientConfig(
-        providers_file_path=str(Path(__file__).parent / "providers.json"),
-        load_variables_from=[
-            UtcpDotEnv(env_file_path=str(Path(__file__).parent / ".env"))
-        ]
+    config = UtcpClientConfigSerializer().validate_dict(
+        {
+            "load_variables_from": [
+                {
+                    "variable_loader_type": "dotenv",
+                    "env_file_path": str(Path(__file__).parent / ".env")
+                }
+            ],
+            "tool_repository": {
+                "tool_repository_type": "in_memory"
+            },
+            "tool_search_strategy": {
+                "tool_search_strategy_type": "tag_and_description_word_match",
+                "description_weight": 1,
+                "tag_weight": 3
+            },
+            "manual_call_templates": [
+                {
+                    "name": "openlibrary",
+                    "call_template_type": "http",
+                    "http_method": "GET",
+                    "url": "https://openlibrary.org/static/openapi.json",
+                    "content_type": "application/json"
+                },
+                {
+                    "name": "newsapi",
+                    "call_template_type": "text",
+                    "file_path": ".\\newsapi_manual.json"
+                }
+            ],
+            "post_processing": [
+                {
+                    "tool_post_processor_type": "filter_dict",
+                    "only_include_keys": ["name", "key"],
+                    "only_include_tools": ["openlibrary.read_search_authors_json_search_authors_json_get"]
+                }
+            ]
+        }
     )
     
     # Create and return the UTCP client
-    client = await UtcpClient.create(config)
+    client = await UtcpClient.create(
+        root_dir="C:\\Users\\razva\\Documents\\Startup\\utcp\\utcp-examples\\python\\openai_llm_tool_calling_example",
+        config=config
+    )
     return client
 
 def format_tools_for_prompt(tools: List[Tool]) -> str:
