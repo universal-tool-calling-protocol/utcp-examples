@@ -35,6 +35,14 @@ async def initialize_utcp_client() -> UtcpClient:
                     "env_file_path": str(Path(__file__).parent / ".env")
                 }
             ],
+            "tool_repository": {
+                "tool_repository_type": "in_memory"
+            },
+            "tool_search_strategy": {
+                "tool_search_strategy_type": "tag_and_description_word_match",
+                "description_weight": 1,
+                "tag_weight": 3
+            },
             "manual_call_templates": [
                 {
                     "name": "openlibrary",
