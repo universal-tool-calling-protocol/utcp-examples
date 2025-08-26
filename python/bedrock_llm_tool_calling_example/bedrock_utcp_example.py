@@ -21,9 +21,9 @@ import traceback
 import boto3
 from dotenv import load_dotenv
 
-from utcp.client.utcp_client import UtcpClient
-from utcp.client.utcp_client_config import UtcpClientConfig, UtcpDotEnv
-from utcp.shared.tool import Tool
+from utcp.utcp_client import UtcpClient
+from utcp.data.utcp_client_config import UtcpClientConfigSerializer
+from utcp.data.tool import Tool
 
 # Global debug flag
 DEBUG = False
@@ -34,14 +34,9 @@ modelId = 'anthropic.claude-3-sonnet-20240229-v1:0'
 
 async def initialize_utcp_client() -> UtcpClient:
     """Initialize the UTCP client with configuration."""
-    config = UtcpClientConfig(
-        providers_file_path=str(Path(__file__).parent / "providers.json"),
-        load_variables_from=[
-            UtcpDotEnv(env_file_path=str(Path(__file__).parent / ".env"))
-        ]
-    )
-    
-    client = await UtcpClient.create(config)
+    # Load configuration from the providers.json file
+    config_path = str(Path(__file__).parent / "providers.json")
+    client = await UtcpClient.create(config=config_path)
     return client
 
 
