@@ -65,11 +65,11 @@ def format_tools_for_bedrock(tools: List[Tool]) -> Tuple[List[Dict[str, Any]], D
             "required": []
         }
         
-        # Add parameters to the input schema
-        if "parameters" in schema and "properties" in schema["parameters"]:
-            input_schema_json["properties"] = schema["parameters"]["properties"]
-            if "required" in schema["parameters"]:
-                input_schema_json["required"] = schema["parameters"]["required"]
+        # Add inputs to the input schema
+        if "inputs" in schema and "properties" in schema["inputs"]:
+            input_schema_json["properties"] = schema["inputs"]["properties"]
+            if "required" in schema["inputs"]:
+                input_schema_json["required"] = schema["inputs"]["required"]
         
         # Replace periods in tool name with underscores
         original_name = tool.name
