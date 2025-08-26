@@ -54,7 +54,7 @@ async def initialize_utcp_client() -> UtcpClient:
                 {
                     "name": "newsapi",
                     "call_template_type": "text",
-                    "file_path": ".\\newsapi_manual.json"
+                    "file_path": "./newsapi_manual.json"
                 }
             ],
             "post_processing": [
@@ -68,10 +68,7 @@ async def initialize_utcp_client() -> UtcpClient:
     )
     
     # Create and return the UTCP client
-    client = await UtcpClient.create(
-        root_dir="C:\\Users\\razva\\Documents\\Startup\\utcp\\utcp-examples\\python\\openai_llm_tool_calling_example",
-        config=config
-    )
+    client = await UtcpClient.create(config=config)
     return client
 
 def format_tools_for_prompt(tools: List[Tool]) -> str:
