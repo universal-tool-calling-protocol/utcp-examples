@@ -1,0 +1,35 @@
+{
+  "manual_version": "1.0.0",
+  "utcp_version": "1.0.1",
+  "tools": [
+    {
+      "name": "my_cli_tool",
+      "description": "string",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "outputs": {
+        "type": "string"
+      },
+      "tags": [
+        "echo"
+      ],
+      "tool_call_template": {
+        "call_template_type": "cli",
+        "command_name": "./script.sh",
+        "env_vars": {
+          "API_KEY": "$API_KEY"
+        },
+        "working_dir": "."
+      }
+    }
+  ]
+}
