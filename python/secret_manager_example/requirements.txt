@@ -1,0 +1,3 @@
+utcp
+utcp-http
+google-cloud-secret-manager=2.24.0

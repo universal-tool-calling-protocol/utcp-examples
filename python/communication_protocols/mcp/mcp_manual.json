@@ -1,0 +1,26 @@
+{
+  "manual_version": "1.0.0",
+  "utcp_version": "1.0.1",
+  "tools": [
+    {
+      "name": "mcp_playwright",
+      "description": "string",
+      "tags": [
+        "playwright"
+      ],
+      "tool_call_template": {
+        "call_template_type": "mcp",
+        "config": {
+          "mcpServers": {
+            "playwright": {
+              "command": "npx",
+              "args": [
+                "@playwright/mcp@latest"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

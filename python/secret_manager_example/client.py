@@ -1,7 +1,7 @@
 import asyncio
 import traceback
 from os import getcwd
-from typing import Optional
+from typing import Literal, Optional
 from google.cloud import secretmanager
 from utcp.exceptions import UtcpSerializerValidationError
 from utcp.interfaces.serializer import Serializer
@@ -9,13 +9,13 @@ from utcp.plugins.discovery import register_variable_loader
 from utcp.utcp_client import UtcpClient
 from utcp.data.utcp_client_config import UtcpClientConfigSerializer
 from utcp.data.variable_loader import VariableLoader
-from typing import Literal
 
 
 class GcpSecretManager(VariableLoader):
+    """Configuration for UTCP GCP Secret Manager client."""
     variable_loader_type: Literal["gcp_secret_manager"] = "gcp_secret_manager"
     project_id: str
-    """Configuration for UTCP GCP Secret Manager client."""
+
     def __init__(self, variable_loader_type: Literal["gcp_secret_manager"], project_id: str):
         super().__init__(variable_loader_type=variable_loader_type, project_id=project_id)
         self._client: secretmanager.SecretManagerServiceClient = secretmanager.SecretManagerServiceClient()
@@ -28,9 +28,9 @@ class GcpSecretManager(VariableLoader):
         return secret_value
 
 class GcpSecretManagerSerializer(Serializer[GcpSecretManager]):
-    def validate_dict(self, data: dict) -> GcpSecretManager:
+    def validate_dict(self, obj: dict) -> GcpSecretManager:
         try:
-            return GcpSecretManager.model_validate(data)
+            return GcpSecretManager.model_validate(obj)
         except UtcpSerializerValidationError as e:
             raise UtcpSerializerValidationError("Invalid GcpSecretManager: " + traceback.format_exc()) from e
 
@@ -47,6 +47,12 @@ async def main():
                     "call_template_type": "http",
                     "http_method": "GET",
                     "url": "http://localhost:8080/utcp",
+                    "auth": {
+                        "auth_type": "api_key",
+                        "api_key": "Bearer $API_KEY",
+                        "var_name": "Authorization",
+                        "location": "header"
+                    }
                 }
             ],
             "load_variables_from": [
