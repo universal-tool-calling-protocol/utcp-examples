@@ -5,3 +5,6 @@ pydantic
 authlib
 python-dotenv
 boto3>=1.28.0
+utcp
+utcp-http
+utcp-text

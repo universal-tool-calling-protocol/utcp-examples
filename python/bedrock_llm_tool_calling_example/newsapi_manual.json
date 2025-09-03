@@ -1,5 +1,6 @@
 {
-  "version": "1.0",
+  "manual_version": "1.0",
+  "utcp_version": "1.0.3",
   "tools": [
     {
       "name": "everything_get",
@@ -124,8 +125,8 @@
           }
         }
       },
-      "tool_provider": {
-        "provider_type": "http",
+      "tool_call_template": {
+        "call_template_type": "http",
         "url": "https://newsapi.org/v2/everything",
         "http_method": "GET",
         "content_type": "application/json",
@@ -169,7 +170,8 @@
             "type": "integer",
             "description": "Use this to page through the results if the total results found is greater than the page size."
           }
-        }
+        },
+        "required": []
       },
       "outputs": {
         "type": "object",
@@ -236,8 +238,8 @@
           }
         }
       },
-      "tool_provider": {
-        "provider_type": "http",
+      "tool_call_template": {
+        "call_template_type": "http",
         "url": "https://newsapi.org/v2/top-headlines",
         "http_method": "GET",
         "content_type": "application/json",
