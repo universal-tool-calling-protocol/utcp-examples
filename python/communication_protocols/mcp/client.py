@@ -10,9 +10,18 @@ async def main():
             {
                 "manual_call_templates": [
                     {
-                        "name": "playwright",
-                        "call_template_type": "text",
-                        "file_path": "mcp_manual.json"
+                        "name": "browser",
+                        "call_template_type": "mcp",
+                        "config": {
+                            "mcpServers": {
+                                "playwright": {
+                                    "command": "npx",
+                                    "args": [
+                                        "@playwright/mcp@latest"
+                                    ]
+                                }
+                            }
+                        }
                     }
                 ]
             }
@@ -27,14 +36,14 @@ async def main():
 
     # Call one of the tools
     if tools:
-        tool_to_call = "playwright.mcp_playwright.browser_navigate"
+        tool_to_call = "browser.playwright.browser_navigate"
         args = {"url": "https://www.google.com"}
 
         result = await client.call_tool(tool_to_call, args)
         print(f"\nTool call result for '{tool_to_call}':")
         print(result)
 
-        tool_to_call = "playwright.mcp_playwright.browser_close"
+        tool_to_call = "browser.playwright.browser_close"
         result = await client.call_tool(tool_to_call, {})
         print(f"\nTool call result for '{tool_to_call}':")
         print(result)
