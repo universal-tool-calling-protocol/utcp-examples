@@ -56,7 +56,8 @@ def format_tools_for_bedrock(tools: List[Tool]) -> Tuple[List[Dict[str, Any]], D
     tool_name_mapping = {}
     
     for tool in tools:
-        schema = tool.model_dump()
+        # Use exclude_none=True to remove UTCP's null fields that break Bedrock validation
+        schema = tool.model_dump(exclude_none=True)
         
         # Create the input schema JSON
         input_schema_json = {
