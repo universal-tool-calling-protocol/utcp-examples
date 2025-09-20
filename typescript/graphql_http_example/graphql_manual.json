@@ -1,0 +1,75 @@
+{
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "github.graphql_query",
+      "description": "Execute a GraphQL query against the GitHub GraphQL API.",
+      "tags": ["graphql", "github"],
+      "tool_provider": {
+        "name": "github_graphql",
+        "provider_type": "http",
+        "url": "https://api.github.com/graphql",
+        "http_method": "POST",
+        "headers": {
+          "Authorization": "Bearer ${GITHUB_TOKEN}",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      },
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "properties": {
+              "query": { "type": "string", "description": "GraphQL query string" },
+              "variables": { "type": "object", "additionalProperties": true }
+            },
+            "required": ["query"]
+          }
+        },
+        "required": ["body"]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "object", "additionalProperties": true },
+          "errors": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    },
+    {
+      "name": "github.search_repos",
+      "description": "Search public GitHub repositories by keywords using the GraphQL search API.",
+      "tags": ["graphql", "github", "search"],
+      "tool_provider": {
+        "name": "github_graphql",
+        "provider_type": "http",
+        "url": "https://api.github.com/graphql",
+        "http_method": "POST",
+        "headers": {
+          "Authorization": "Bearer ${GITHUB_TOKEN}",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      },
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "keywords": { "type": "string", "description": "Keywords to search for in repository names" },
+          "limit": { "type": "integer", "description": "Max results to return", "default": 10 },
+          "user": { "type": "string", "description": "Optional GitHub login to scope search to a user" }
+        },
+        "required": ["keywords"]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "object", "additionalProperties": true },
+          "errors": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    }
+  ]
+}
+

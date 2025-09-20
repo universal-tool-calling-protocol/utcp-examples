@@ -1,0 +1,20 @@
+{
+  "name": "utcp-graphql-http-example",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start:llm": "node --loader ts-node/esm llm_client_openai.ts"
+  },
+  "dependencies": {
+    "@utcp/sdk": "^0.1.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.55.4",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}
+
