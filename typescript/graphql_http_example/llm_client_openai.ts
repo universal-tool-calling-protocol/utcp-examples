@@ -4,10 +4,7 @@ import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 
-import { UtcpClient } from '@utcp/sdk/dist/src/client/utcp-client.js';
-import { UtcpClientConfigSchema } from '@utcp/sdk/dist/src/client/utcp-client-config.js';
-import { TextProviderSchema, TextProvider } from '@utcp/sdk/dist/src/shared/provider.js';
-import { Tool } from '@utcp/sdk/dist/src/shared/tool.js';
+import { UtcpClient, UtcpClientConfigSchema, TextProviderSchema, TextProvider, Tool } from '@utcp/sdk';
 
 function createReadline() {
   return readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -17,8 +14,19 @@ function ask(rl: readline.Interface, prompt: string) {
   return new Promise<string>(resolve => rl.question(prompt, resolve));
 }
 
+function sanitizeToolsForPrompt(tools: Tool[]): any[] {
+  // Redact provider and headers; expose only safe, schema-relevant fields
+  return tools.map((t: any) => ({
+    name: t?.name,
+    description: t?.description,
+    tags: t?.tags,
+    inputs: t?.inputs,
+    outputs: t?.outputs
+  }));
+}
+
 function formatToolsForPrompt(tools: Tool[]): string {
-  return JSON.stringify(tools, null, 2);
+  return JSON.stringify(sanitizeToolsForPrompt(tools), null, 2);
 }
 
 function normalizeArguments(arguments_: any): any {
@@ -121,6 +129,7 @@ async function main() {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const rl = createReadline();
   const history: ChatCompletionMessageParam[] = [];
+  const MAX_HISTORY_MESSAGES = 20;
 
   try {
     while (true) {
@@ -141,6 +150,9 @@ async function main() {
         if (!toolJson || !toolJson.tool_name || typeof toolJson.arguments !== 'object') {
           console.log('Assistant:', assistant);
           history.push({ role: 'user', content: userPrompt }, { role: 'assistant', content: assistant });
+          if (history.length > MAX_HISTORY_MESSAGES) {
+            history.splice(0, history.length - MAX_HISTORY_MESSAGES);
+          }
           break;
         }
 
@@ -150,6 +162,13 @@ async function main() {
 
         let toolOutput = '';
         try {
+          // Basic validation for alias to avoid empty searches
+          if (toolName === 'github.search_repos') {
+            const kw = (args?.keywords ?? '').toString().trim();
+            if (!kw) {
+              throw new Error('keywords is required for github.search_repos');
+            }
+          }
           const result = await callTool(utcpClient, toolName, args);
           toolOutput = JSON.stringify(result);
         } catch (e: any) {
@@ -165,6 +184,10 @@ async function main() {
           { role: 'assistant', content: JSON.stringify(toolJson) },
           { role: 'user', content: `Tool output: ${toolOutput}. If needed, call another tool. Otherwise, answer.` }
         ];
+
+        if (history.length > MAX_HISTORY_MESSAGES) {
+          history.splice(0, history.length - MAX_HISTORY_MESSAGES);
+        }
 
         continue;
       }
