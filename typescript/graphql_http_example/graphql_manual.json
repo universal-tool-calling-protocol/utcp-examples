@@ -40,7 +40,7 @@
     },
     {
       "name": "github.search_repos",
-      "description": "Search public GitHub repositories by keywords using the GraphQL search API.",
+      "description": "Search public GitHub repositories by keywords using the GraphQL search API. Provide body.query and body.variables; defaults are prefilled.",
       "tags": ["graphql", "github", "search"],
       "tool_provider": {
         "name": "github_graphql",
@@ -56,11 +56,28 @@
       "inputs": {
         "type": "object",
         "properties": {
-          "keywords": { "type": "string", "description": "Keywords to search for in repository names" },
-          "limit": { "type": "integer", "description": "Max results to return", "default": 10 },
-          "user": { "type": "string", "description": "Optional GitHub login to scope search to a user" }
+          "body": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "GraphQL search query; defaults to a repository search over name field.",
+                "default": "query ($q: String!, $first: Int!) {\n  search(query: $q, type: REPOSITORY, first: $first) {\n    repositoryCount\n    nodes {\n      ... on Repository { name url owner { login } description }\n    }\n  }\n}"
+              },
+              "variables": {
+                "type": "object",
+                "description": "Variables for the search query: q and first.",
+                "properties": {
+                  "q": { "type": "string", "description": "Search string, e.g., 'keywords in:name' or 'user:LOGIN keywords in:name'" },
+                  "first": { "type": "integer", "description": "Max results (1..50)", "default": 10 }
+                },
+                "required": ["q"]
+              }
+            },
+            "required": ["query", "variables"]
+          }
         },
-        "required": ["keywords"]
+        "required": ["body"]
       },
       "outputs": {
         "type": "object",

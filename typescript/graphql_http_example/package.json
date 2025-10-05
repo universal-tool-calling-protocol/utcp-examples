@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start:llm": "node --loader ts-node/esm llm_client_openai.ts"
+    "start:llm": "ts-node-esm llm_client_openai.ts",
+    "test": "vitest run -c vitest.config.ts"
   },
   "dependencies": {
     "@utcp/sdk": "^0.1.0",
@@ -14,7 +15,9 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5",
+    "nock": "^14.0.0"
   }
 }
 

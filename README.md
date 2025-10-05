@@ -25,3 +25,9 @@ This repository contains practical examples demonstrating how to use the Univers
 For detailed documentation and API reference, visit:
 - [Python UTCP repository](https://github.com/universal-tool-calling-protocol/python-utcp)
 - [TypeScript UTCP repository](https://github.com/universal-tool-calling-protocol/typescript-utcp)
+
+## Featured Examples
+
+- TypeScript: GraphQL over HTTP (GitHub GraphQL)
+  - Path: `typescript/graphql_http_example`
+  - One-liner: Demonstrates modeling GraphQL operations as UTCP HTTP tools with an OpenAI-driven client, including a generic GraphQL executor and a repo search tool using variables.

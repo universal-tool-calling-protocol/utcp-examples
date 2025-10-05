@@ -4,7 +4,11 @@ import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 
-import { UtcpClient, UtcpClientConfigSchema, TextProviderSchema, TextProvider, Tool } from '@utcp/sdk';
+import { UtcpClient } from '@utcp/sdk/dist/src/client/utcp-client.js';
+import { UtcpClientConfigSchema } from '@utcp/sdk/dist/src/client/utcp-client-config.js';
+import { TextProviderSchema } from '@utcp/sdk/dist/src/shared/provider.js';
+import type { TextProvider } from '@utcp/sdk/dist/src/shared/provider.js';
+import type { Tool } from '@utcp/sdk/dist/src/shared/tool.js';
 
 function createReadline() {
   return readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -65,41 +69,10 @@ async function initializeClient(): Promise<UtcpClient> {
   return client;
 }
 
-async function getOpenAIResponse(openai: OpenAI, messages: ChatCompletionMessageParam[]): Promise<string> {
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages
-  });
-  return response.choices[0]?.message?.content || '';
-}
+// Using OpenAI function calling; no regex extraction
 
-function extractToolJson(text: string): any | null {
-  const match = text.match(/```json\n({[\s\S]*?})\n```/s) || text.match(/({[\s\S]*})/s);
-  if (!match) return null;
-  try {
-    return JSON.parse(match[1] || '{}');
-  } catch {
-    return null;
-  }
-}
-
-function buildSearchQuery(keywords: string, limit: number, user?: string) {
-  const q = user ? `user:${user} ${keywords} in:name` : `${keywords} in:name`;
-  return {
-    query: `query ($q: String!, $first: Int!) {\n  search(query: $q, type: REPOSITORY, first: $first) {\n    repositoryCount\n    nodes {\n      ... on Repository { name url owner { login } description }\n    }\n  }\n}`,
-    variables: { q, first: Math.max(1, Math.min(50, limit || 10)) }
-  };
-}
-
+// Direct tool invocation; tools are fully defined in the manual
 async function callTool(utcpClient: UtcpClient, toolName: string, args: any) {
-  // Allow a higher-level tool alias for convenience
-  if (toolName === 'github.search_repos') {
-    const keywords = typeof args?.keywords === 'string' ? args.keywords : '';
-    const limit = typeof args?.limit === 'number' ? args.limit : 10;
-    const user = typeof args?.user === 'string' ? args.user : undefined;
-    const { query, variables } = buildSearchQuery(keywords, limit, user);
-    return await utcpClient.call_tool('github.graphql_query', { body: { query, variables } });
-  }
   return await utcpClient.call_tool(toolName, args);
 }
 
@@ -122,8 +95,8 @@ async function main() {
     'You are a helpful assistant with access to two tools: a generic GraphQL executor and a convenience repository search tool. ' +
     'When you need to use a tool, respond ONLY with a JSON object with keys "tool_name" and "arguments". ' +
     'Do not add any other text. The "arguments" must be a JSON object. ' +
-    'Prefer github.search_repos when the user asks for repository discovery without a specific query structure; fallback to github.graphql_query for custom queries. ' +
-    'Search guidance: use keywords and optionally scope by user login. ' +
+    'For repository discovery, call github.search_repos with {"body": {"query": "query ($q: String!, $first: Int!) {\n  search(query: $q, type: REPOSITORY, first: $first) {\n    repositoryCount\n    nodes {\n      ... on Repository { name url owner { login } description }\n    }\n  }\n}", "variables": {"q": "keywords in:name", "first": N}}}. ' +
+    'For custom GraphQL, use github.graphql_query. ' +
     `Available tools:\n${toolsJson}`;
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -144,52 +117,99 @@ async function main() {
       ];
 
       while (true) {
-        const assistant = await getOpenAIResponse(openai, messages);
-        const toolJson = extractToolJson(assistant);
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages,
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'call_utcp_tool',
+                description: 'Call a UTCP tool by name with arguments. Arguments should match the tool schema.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    tool_name: { type: 'string' },
+                    arguments: { type: 'object', additionalProperties: true }
+                  },
+                  required: ['tool_name', 'arguments']
+                }
+              }
+            }
+          ]
+        });
 
-        if (!toolJson || !toolJson.tool_name || typeof toolJson.arguments !== 'object') {
-          console.log('Assistant:', assistant);
-          history.push({ role: 'user', content: userPrompt }, { role: 'assistant', content: assistant });
+        const choice = response.choices[0];
+        const assistantMsg: any = choice.message;
+        const toolCalls = assistantMsg.tool_calls || [];
+        const assistantContent = assistantMsg.content || '';
+
+        if (!toolCalls.length) {
+          console.log('Assistant:', assistantContent);
+          history.push({ role: 'user', content: userPrompt }, { role: 'assistant', content: assistantContent });
           if (history.length > MAX_HISTORY_MESSAGES) {
             history.splice(0, history.length - MAX_HISTORY_MESSAGES);
           }
           break;
         }
 
-        const toolName: string = toolJson.tool_name;
-        const args = normalizeArguments(toolJson.arguments);
-        console.log(`\nExecuting: ${toolName} with args: ${JSON.stringify(args, null, 2)}`);
-
-        let toolOutput = '';
-        try {
-          // Basic validation for alias to avoid empty searches
-          if (toolName === 'github.search_repos') {
-            const kw = (args?.keywords ?? '').toString().trim();
-            if (!kw) {
-              throw new Error('keywords is required for github.search_repos');
-            }
-          }
-          const result = await callTool(utcpClient, toolName, args);
-          toolOutput = JSON.stringify(result);
-        } catch (e: any) {
-          toolOutput = `Error calling ${toolName}: ${e?.message || String(e)}`;
-          console.error(toolOutput);
-        }
-
-        // Extend the conversation with the tool decision and output
-        messages = [
+        const newMessages: ChatCompletionMessageParam[] = [
           { role: 'system', content: systemPrompt },
           ...history,
           { role: 'user', content: userPrompt },
-          { role: 'assistant', content: JSON.stringify(toolJson) },
-          { role: 'user', content: `Tool output: ${toolOutput}. If needed, call another tool. Otherwise, answer.` }
+          assistantMsg as ChatCompletionMessageParam
         ];
 
-        if (history.length > MAX_HISTORY_MESSAGES) {
-          history.splice(0, history.length - MAX_HISTORY_MESSAGES);
+        for (const call of toolCalls) {
+          if (call.type !== 'function' || call.function?.name !== 'call_utcp_tool') continue;
+          const payloadText = call.function?.arguments || '{}';
+          let payload: any = {};
+          try {
+            payload = JSON.parse(payloadText);
+          } catch {
+            console.error('Failed to parse tool arguments JSON');
+            continue;
+          }
+
+          const toolName: string = payload.tool_name;
+          const args = normalizeArguments(payload.arguments);
+          console.log(`\nExecuting: ${toolName} with args: ${JSON.stringify(args, null, 2)}`);
+
+          let toolOutput = '';
+          try {
+            const result: any = await callTool(utcpClient, toolName, args);
+            const errors: any[] | undefined = Array.isArray(result?.errors) ? result.errors : undefined;
+            if (errors && errors.length > 0) {
+              const summaries = errors.map(e => (e?.message ?? JSON.stringify(e))).slice(0, 3);
+              console.error(`GraphQL errors (${errors.length}): ${summaries.join(' | ')}`);
+              toolOutput = JSON.stringify({
+                ok: false,
+                error_count: errors.length,
+                error_messages: errors.map(e => e?.message ?? String(e)),
+                data: result?.data ?? null,
+                errors
+              });
+            } else {
+              toolOutput = JSON.stringify({ ok: true, data: result?.data ?? result });
+            }
+          } catch (e: any) {
+            toolOutput = `Error calling ${toolName}: ${e?.message || String(e)}`;
+            console.error(toolOutput);
+          }
+
+          newMessages.push({
+            role: 'tool',
+            // @ts-expect-error: tool_call_id is a valid property for tool role in OpenAI tools
+            tool_call_id: call.id,
+            content: toolOutput
+          } as any);
+
+          if (history.length > MAX_HISTORY_MESSAGES) {
+            history.splice(0, history.length - MAX_HISTORY_MESSAGES);
+          }
         }
 
-        continue;
+        messages = newMessages;
       }
     }
   } finally {

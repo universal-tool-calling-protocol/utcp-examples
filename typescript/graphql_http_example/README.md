@@ -42,6 +42,11 @@ npm run start:llm
 - "Find repositories mentioning 'universal tool calling' (any owner) and show name + URL"
 - "Limit to my account: search my repos for 'agent' in the name"
 
+### Testing without hitting GitHub
+1. Install dev deps (already in `package.json`): `npm i`
+2. Run tests: `npm test`
+3. We use `nock` to mock `https://api.github.com/graphql` so queries resolve locally.
+
 The client supports multi-step tool use. For repo discovery:
 - The model can call `github.graphql_query` to get `viewer.login`, then use `github.search_repos` with either global keywords or `user:LOGIN` scoping.
 
