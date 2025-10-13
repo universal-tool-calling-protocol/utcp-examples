@@ -8,6 +8,8 @@ This example demonstrates how to integrate the Universal Tool Calling Protocol (
 2. **LLM Integration**: Uses Amazon Bedrock to determine which tools to call
 3. **Tool Execution**: Executes the selected tools via UTCP call templates and returns results
 4. **Response Generation**: Provides final responses incorporating tool results
+5. **Multi-turn Conversations**: Handles complex tool chains and recursive tool calls
+6. **Intelligent Tool Usage**: Balances between using tools and leveraging LLM knowledge
 
 **Note**: This is a client-only example - no server is involved. The call templates provide a direct way for the client to use existing APIs as LLM tools.
 
@@ -48,7 +50,8 @@ cp example.env .env
 
 Edit `.env` with your actual credentials:
 - AWS credentials for Bedrock access
-- API keys for any external tools (e.g., NewsAPI)
+- API keys for any external tools (e.g., `newsapi_NEWS_API_KEY` for NewsAPI)
+- Optional: `BEDROCK_MODEL_ID` to override the default model
 
 ### 4. Run the Example
 
@@ -57,6 +60,23 @@ python bedrock_utcp_client_example.py
 ```
 
 The script will start an interactive session where you can ask questions that might require tool usage.
+
+#### Command Line Options
+
+- `--debug`: Enable detailed debug output for troubleshooting
+- `--prompt "your question"`: Start with a specific prompt instead of interactive mode
+
+Examples:
+```bash
+# Interactive mode with debug output
+python bedrock_utcp_client_example.py --debug
+
+# Automated mode with a specific question
+python bedrock_utcp_client_example.py --prompt "What are the latest news about AI?"
+
+# Both debug and automated mode
+python bedrock_utcp_client_example.py --debug --prompt "Find books about machine learning"
+```
 
 ## About UTCP
 
@@ -81,6 +101,28 @@ The `providers.json` file defines the UTCP client configuration, including:
 - **utcp-text**: Text file protocol plugin for local tool manuals
 - **boto3**: AWS SDK for Bedrock integration
 - **python-dotenv**: Environment variable management
+
+## Troubleshooting
+
+### Common Issues
+
+1. **AWS Credentials Not Found**
+   - Ensure AWS credentials are configured via AWS CLI or environment variables
+   - Check that your AWS profile has Bedrock access permissions
+
+2. **Tool API Failures**
+   - Verify API keys are correctly set in `.env` file
+   - Use `--debug` flag to see detailed error information
+   - Check API rate limits and quotas
+
+3. **Model Access Issues**
+   - Ensure your AWS account has access to the specified Bedrock model
+   - Try setting a different model via `BEDROCK_MODEL_ID` environment variable
+
+4. **Debug Mode**
+   - Use `--debug` for detailed execution logs
+   - Check conversation history and tool call traces
+   - Verify tool discovery and selection process
 
 ## Learn More
 
