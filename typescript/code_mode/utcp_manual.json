@@ -1,0 +1,190 @@
+{
+  "utcp_version": "1.0.0",
+  "manual_version": "1.0.0",
+  "tools": [
+    {
+      "name": "fibonacci",
+      "description": "Calculates the nth Fibonacci number using an iterative approach",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50,
+            "description": "The position in the Fibonacci sequence (0-indexed)"
+          }
+        },
+        "required": ["n"]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "integer",
+            "description": "The nth Fibonacci number"
+          },
+          "sequence": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "description": "The Fibonacci sequence up to the nth number"
+          }
+        },
+        "required": ["result", "sequence"]
+      },
+      "tags": ["math", "algorithm", "sequence"],
+      "tool_call_template": {
+        "call_template_type": "direct-call",
+        "callable_name": "fibonacci"
+      }
+    },
+    {
+      "name": "isPrime",
+      "description": "Checks if a given number is prime",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": 2,
+            "description": "The number to check for primality"
+          }
+        },
+        "required": ["number"]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "isPrime": {
+            "type": "boolean",
+            "description": "Whether the number is prime"
+          },
+          "factors": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "description": "List of factors if not prime, empty if prime"
+          }
+        },
+        "required": ["isPrime", "factors"]
+      },
+      "tags": ["math", "prime", "number-theory"],
+      "tool_call_template": {
+        "call_template_type": "direct-call",
+        "callable_name": "isPrime"
+      }
+    },
+    {
+      "name": "textStats",
+      "description": "Analyzes text and returns various statistics",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The text to analyze"
+          },
+          "detailed": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to include detailed character analysis"
+          }
+        },
+        "required": ["text"]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "wordCount": {
+            "type": "integer",
+            "description": "Number of words"
+          },
+          "charCount": {
+            "type": "integer",
+            "description": "Number of characters"
+          },
+          "sentenceCount": {
+            "type": "integer",
+            "description": "Number of sentences"
+          },
+          "averageWordLength": {
+            "type": "number",
+            "description": "Average length of words"
+          },
+          "mostCommonWords": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "word": {"type": "string"},
+                "count": {"type": "integer"}
+              }
+            },
+            "description": "Most frequently used words"
+          }
+        },
+        "required": ["wordCount", "charCount", "sentenceCount", "averageWordLength", "mostCommonWords"]
+      },
+      "tags": ["text", "analysis", "nlp"],
+      "tool_call_template": {
+        "call_template_type": "direct-call",
+        "callable_name": "textStats"
+      }
+    },
+    {
+      "name": "generatePassword",
+      "description": "Generates a secure password with specified criteria",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 128,
+            "default": 12,
+            "description": "Length of the password"
+          },
+          "includeNumbers": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include numeric characters"
+          },
+          "includeSymbols": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include symbol characters"
+          },
+          "excludeSimilar": {
+            "type": "boolean",
+            "default": true,
+            "description": "Exclude similar looking characters (0, O, l, I, etc.)"
+          }
+        },
+        "required": ["length"]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "The generated password"
+          },
+          "strength": {
+            "type": "string",
+            "enum": ["weak", "medium", "strong", "very-strong"],
+            "description": "Password strength assessment"
+          },
+          "entropy": {
+            "type": "number",
+            "description": "Estimated entropy bits"
+          }
+        },
+        "required": ["password", "strength", "entropy"]
+      },
+      "tags": ["security", "password", "generator"],
+      "tool_call_template": {
+        "call_template_type": "direct-call",
+        "callable_name": "generatePassword"
+      }
+    }
+  ]
+}

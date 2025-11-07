@@ -1,0 +1,33 @@
+{
+  "name": "utcp-code-mode-example",
+  "version": "1.0.0",
+  "description": "Complete example demonstrating UTCP CodeModeUtcpClient with file and direct-call plugins",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node src/index.js",
+    "dev": "tsx src/index.ts",
+    "clean": "rimraf dist src/*.js src/*.d.ts"
+  },
+  "dependencies": {
+    "@utcp/code-mode": "^1.0.3",
+    "@utcp/direct-call": "^1.0.0",
+    "@utcp/file": "^1.0.0",
+    "@utcp/sdk": "^1.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "rimraf": "^5.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "utcp",
+    "code-mode",
+    "typescript",
+    "tool-calling",
+    "example"
+  ],
+  "license": "MIT"
+}
