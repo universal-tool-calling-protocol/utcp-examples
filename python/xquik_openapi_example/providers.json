@@ -1,0 +1,31 @@
+{
+  "load_variables_from": [
+    {
+      "variable_loader_type": "dotenv",
+      "env_file_path": "example.env"
+    }
+  ],
+  "tool_repository": {
+    "tool_repository_type": "in_memory"
+  },
+  "tool_search_strategy": {
+    "tool_search_strategy_type": "tag_and_description_word_match",
+    "description_weight": 1,
+    "tag_weight": 3
+  },
+  "manual_call_templates": [
+    {
+      "name": "xquik",
+      "call_template_type": "http",
+      "http_method": "GET",
+      "url": "https://xquik.com/openapi.json",
+      "content_type": "application/json",
+      "auth": {
+        "auth_type": "api_key",
+        "api_key": "$XQUIK_API_KEY",
+        "var_name": "x-api-key",
+        "location": "header"
+      }
+    }
+  ]
+}
