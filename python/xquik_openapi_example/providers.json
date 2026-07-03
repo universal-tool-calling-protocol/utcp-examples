@@ -20,7 +20,7 @@
       "http_method": "GET",
       "url": "https://xquik.com/openapi.json",
       "content_type": "application/json",
-      "auth": {
+      "auth_tools": {
         "auth_type": "api_key",
         "api_key": "$XQUIK_API_KEY",
         "var_name": "x-api-key",
